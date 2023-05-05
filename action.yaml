@@ -1,35 +1,51 @@
 name: 'GitOps Update'
 description: 'Updates a key in a gitops repository and commit it'
 inputs:
-  filename: 
+  filename:
     description: 'Filename to update'
     required: true
-  key:  
+  yq_key:  
     description: "The key to update. Key a string before the colon. Usually it's yaml key like `this-is-key: value`"
     required: true
-  value:  
+  yq_value:  
     description: "The value to set"
     required: true
-  github-deploy-key:  
+  github-deploy-secret:  
     description: "Github deploy ssh private key to clone and commit target repository"
     required: true
-  github-org-and-repo:  
+  github-repo:  
     description: "Target organization and repository in form of `some-org/repo`"
     required: true
-
+  github-branch:  
+    description: "Target git branch (not support yet)"
+    required: true
+  git-message:  
+    description: "Message for commit"
+    required: false
 runs:
   using: "composite"
   steps:
-    - name: Python 3.10.1
-      uses: actions/setup-python@v2
+  - name: Setup SSH Keys and known_hosts
+    env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    run: |
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        ssh-add - <<< "${{ secrets.GITOPS_SSH_PRIVATE_KEY }}"
+  - uses: actions/checkout@master
       with:
-        python-version: 3.10.1
-    - name: Upgrade pip
-      run: pip install --upgrade pip
-      shell: bash
-    - name: Install dependencies
-      run: |
-        if [ -f ${{ github.action_path }}/requirements.txt ];then pip install -r ${{ github.action_path }}/requirements.txt; fi
-      shell: bash
-    - run: ${{ github.action_path }}/run.sh "${{ inputs.filename }}" "${{ inputs.key }}" "${{ inputs.value }}" "${{ inputs.github-deploy-key }}" "${{ inputs.github-org-and-repo }}"
-      shell: bash
+        repository: ${{ inputs.github-repo }}
+        path: ./infra-as-code-repo
+        submodules: recursive
+  - name: YQ update file
+    uses: mikefarah/yq@master
+    with:
+      cmd: yq -i '${{ inputs.yq_key }} = "${{ inputs.yq_value }}"' './infra-as-code-repo/${{ inputs.filename }}'
+  - name: Setup SSH Keys and known_hosts
+    env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    run: |
+      git config user.name "$(git log -n 1 --pretty=format:%an)"
+      git config user.email "$(git log -n 1 --pretty=format:%ae)"
+      COMMIT_MSG=${{ inputs.git-message }}
+      git -C ./infra-as-code-repo commit -m '${COMMIT_MSG:-"GitOpt update"}'
+      git -C ./infra-as-code-repo push
