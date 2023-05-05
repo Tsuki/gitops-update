@@ -18,9 +18,11 @@ inputs:
     required: true
   github-branch:  
     description: "Target git branch (not support yet)"
+    default: 'main'
     required: false
   git-message:  
     description: "Message for commit"
+    default: 'GitOpt update'
     required: false
 runs:
   using: "composite"
@@ -32,9 +34,10 @@ runs:
     run: |
         ssh-agent -a $SSH_AUTH_SOCK > /dev/null
         ssh-add - <<< "${{ inputs.github-deploy-secret }}"
-  - uses: actions/checkout@master
+  - uses: actions/checkout@v3
     with:
       repository: ${{ inputs.github-repo }}
+      ref: ${{ inputs.github-branch }}
       path: ./infra-as-code-repo
       submodules: recursive
   - name: YQ update file
@@ -48,6 +51,5 @@ runs:
     run: |
       git config user.name "$(git log -n 1 --pretty=format:%an)"
       git config user.email "$(git log -n 1 --pretty=format:%ae)"
-      COMMIT_MSG=${{ inputs.git-message }}
-      git -C ./infra-as-code-repo commit -m '${COMMIT_MSG:-"GitOpt update"}'
+      git -C ./infra-as-code-repo commit -m '${{ inputs.git-message }}'
       git -C ./infra-as-code-repo push
