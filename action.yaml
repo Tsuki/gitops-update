@@ -38,6 +38,7 @@ runs:
     with:
       repository: ${{ inputs.github-repo }}
       ref: ${{ inputs.github-branch }}
+      ssh-key: ${{ inputs.github-deploy-secret }}
       path: ./infra-as-code-repo
       submodules: recursive
   - name: YQ update file
