@@ -28,14 +28,15 @@ runs:
   - name: Setup SSH Keys and known_hosts
     env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    shell: bash
     run: |
         ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        ssh-add - <<< "${{ secrets.GITOPS_SSH_PRIVATE_KEY }}"
+        ssh-add - <<< "${{ inputs.github-deploy-secret }}"
   - uses: actions/checkout@master
-      with:
-        repository: ${{ inputs.github-repo }}
-        path: ./infra-as-code-repo
-        submodules: recursive
+    with:
+      repository: ${{ inputs.github-repo }}
+      path: ./infra-as-code-repo
+      submodules: recursive
   - name: YQ update file
     uses: mikefarah/yq@master
     with:
@@ -43,6 +44,7 @@ runs:
   - name: Setup SSH Keys and known_hosts
     env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    shell: bash
     run: |
       git config user.name "$(git log -n 1 --pretty=format:%an)"
       git config user.email "$(git log -n 1 --pretty=format:%ae)"
