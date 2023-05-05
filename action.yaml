@@ -46,7 +46,7 @@ runs:
   - name: YQ update file
     uses: mikefarah/yq@master
     with:
-      cmd: yq -i '${{ inputs.yq_key }} = "${{ inputs.yq_value }}"' './infra-as-code-repo/${{ inputs.filename }}'
+      cmd: yq '${{ inputs.yq_key }} = "${{ inputs.yq_value }}"' './infra-as-code-repo/${{ inputs.filename }}'
   - name: Setup SSH Keys and known_hosts
     env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
