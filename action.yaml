@@ -54,5 +54,5 @@ runs:
     run: |
       git config --global user.name ${{ env.GIT_COMMIT_AUTHOR_NAME }}
       git config --global user.email ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}
-      git -C ./infra-as-code-repo commit -m '${{ inputs.git-message }}'
+      git -C ./infra-as-code-repo commit --all --message '${{ inputs.git-message }}'
       git -C ./infra-as-code-repo push
