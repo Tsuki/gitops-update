@@ -52,7 +52,7 @@ runs:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
     shell: bash
     run: |
-      git config user.name ${{ env.GIT_COMMIT_COMMITTER_NAME }}
-      git config user.email ${{ env.GIT_COMMIT_COMMITTER_EMAIL }}
+      git config --global user.name ${{ env.GIT_COMMIT_AUTHOR_NAME }}
+      git config --global user.email ${{ env.GIT_COMMIT_AUTHOR_EMAIL }}
       git -C ./infra-as-code-repo commit -m '${{ inputs.git-message }}'
       git -C ./infra-as-code-repo push
