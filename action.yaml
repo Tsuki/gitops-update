@@ -40,6 +40,7 @@ runs:
     with:
       repository: ${{ inputs.github-repo }}
       ref: ${{ inputs.github-branch }}
+      fetch-depth: 0
       ssh-key: ${{ inputs.github-deploy-secret }}
       path: ./infra-as-code-repo
       submodules: recursive
